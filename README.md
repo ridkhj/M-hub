@@ -34,6 +34,8 @@ Módulo para a criação e organização de escalas de eventos:
 
 A arquitetura do sistema baseia-se na separação das entidades fundamentais e de seu contexto de execução. Abaixo está a representação da estrutura principal de dados, implementada em JavaScript:
 
+<img src="assets/diagrama_de_classes.png" alt="Diagrama de Classes" width="30%">
+
 ### Musica
 
 Representa uma música no catálogo geral.
