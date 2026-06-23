@@ -1,37 +1,33 @@
-let musicas = [];
-let nextMusicaId = 1;
+import { db } from '../db.js';
 
 export const musicaModel = {
   listarTodas() {
-    return musicas;
+    return db.prepare('SELECT * FROM musicas').all();
   },
 
   buscarPorId(id) {
-    return musicas.find(m => m.id === id) || null;
+    return db.prepare('SELECT * FROM musicas WHERE id = ?').get(Number(id)) || null;
   },
 
   inserir({ nome, bpm, tonalidadeOriginal }) {
-    const nova = {
-      id: nextMusicaId++,
-      nome,
-      bpm: Number(bpm),
-      tonalidadeOriginal,
-      criadaEm: new Date().toISOString(),
-    };
-    musicas.push(nova);
-    return nova;
+    const r = db.prepare(
+      `INSERT INTO musicas (nome, bpm, tonalidade_original, criada_em)
+       VALUES (?, ?, ?, ?)`
+    ).run(nome, bpm ? Number(bpm) : null, tonalidadeOriginal, new Date().toISOString());
+    return this.buscarPorId(r.lastInsertRowid);
   },
 
   atualizar(id, dados) {
-    const idx = musicas.findIndex(m => m.id === id);
-    if (idx === -1) return null;
-    musicas[idx] = { ...musicas[idx], ...dados, id };
-    return musicas[idx];
+    const atual = this.buscarPorId(id);
+    if (!atual) return null;
+    const novo = { ...atual, ...dados, id };
+    const tonalidade = novo.tonalidadeOriginal ?? novo.tonalidade_original ?? null;
+    db.prepare('UPDATE musicas SET nome = ?, bpm = ?, tonalidade_original = ? WHERE id = ?')
+      .run(novo.nome, novo.bpm ? Number(novo.bpm) : null, tonalidade, id);
+    return this.buscarPorId(id);
   },
 
   remover(id) {
-    const len = musicas.length;
-    musicas = musicas.filter(m => m.id !== id);
-    return musicas.length < len;
+    return db.prepare('DELETE FROM musicas WHERE id = ?').run(id).changes > 0;
   },
 };

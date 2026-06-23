@@ -1,36 +1,33 @@
-let repertorios = [];
-let nextRepertorioId = 1;
+import { db } from '../db.js';
 
 export const repertorioModel = {
   listarTodas() {
-    return repertorios;
+    return db.prepare('SELECT * FROM repertorios').all();
   },
 
   buscarPorId(id) {
-    return repertorios.find(r => r.id === id) || null;
+    return db.prepare('SELECT * FROM repertorios WHERE id = ?').get(Number(id)) || null;
   },
 
   inserir({ titulo, dataExecucao }) {
-    const nova = {
-      id: nextRepertorioId++,
-      titulo,
-      dataExecucao,
-      criadaEm: new Date().toISOString(),
-    };
-    repertorios.push(nova);
-    return nova;
+    const r = db.prepare(
+      `INSERT INTO repertorios (titulo, data_execucao, criada_em)
+       VALUES (?, ?, ?)`
+    ).run(titulo, dataExecucao ?? null, new Date().toISOString());
+    return this.buscarPorId(r.lastInsertRowid);
   },
 
   atualizar(id, dados) {
-    const idx = repertorios.findIndex(r => r.id === id);
-    if (idx === -1) return null;
-    repertorios[idx] = { ...repertorios[idx], ...dados, id };
-    return repertorios[idx];
+    const atual = this.buscarPorId(id);
+    if (!atual) return null;
+    const novo = { ...atual, ...dados, id };
+    const dataExec = novo.dataExecucao ?? novo.data_execucao ?? null;
+    db.prepare('UPDATE repertorios SET titulo = ?, data_execucao = ? WHERE id = ?')
+      .run(novo.titulo, dataExec, id);
+    return this.buscarPorId(id);
   },
 
   remover(id) {
-    const len = repertorios.length;
-    repertorios = repertorios.filter(r => r.id !== id);
-    return repertorios.length < len;
+    return db.prepare('DELETE FROM repertorios WHERE id = ?').run(id).changes > 0;
   },
 };

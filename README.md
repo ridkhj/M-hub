@@ -125,3 +125,89 @@ class Repertorio {
 - SQLite
 - JavaScript + Express
 - JavaScript + Bootstrap
+
+## Como Rodar
+
+- **Backend**
+
+  Entre na pasta do servidor e instale dependências:
+
+  ```bash
+  cd server
+  npm install
+  ```
+
+  Para rodar em modo de desenvolvimento (recarregamento automático):
+
+  ```bash
+  npm run dev
+  ```
+
+  Ou iniciar em produção:
+
+  ```bash
+  npm start
+  ```
+
+  A API escuta por padrão em `http://localhost:3000`.
+
+- **Frontend**
+
+  Os arquivos do frontend estão em `client/`. São páginas estáticas — você pode:
+
+  - Abrir `client/index.html` diretamente no navegador;
+  - Ou servir a pasta com um servidor estático (ex.: `npx serve client` ou Live Server no VS Code).
+
+## Rotas da API
+
+Base: `/api`
+
+- **Músicas** (`/api/musicas`)
+  - `GET /api/musicas` — listar todas
+  - `GET /api/musicas/:id` — buscar por id
+  - `POST /api/musicas` — criar (body JSON)
+  - `PUT /api/musicas/:id` — atualizar
+  - `DELETE /api/musicas/:id` — remover
+
+- **Cantores** (`/api/cantores`)
+  - `GET /api/cantores`
+  - `GET /api/cantores/:id`
+  - `POST /api/cantores`
+  - `PUT /api/cantores/:id`
+  - `DELETE /api/cantores/:id`
+
+- **Repertórios** (`/api/repertorios`)
+  - `GET /api/repertorios`
+  - `GET /api/repertorios/:id`
+  - `POST /api/repertorios`
+  - `PUT /api/repertorios/:id`
+  - `DELETE /api/repertorios/:id`
+
+- **Itens de Repertório** (`/api/itens-repertorio`)
+  - `GET /api/itens-repertorio` — listar todos
+  - `GET /api/itens-repertorio/repertorio/:repertorioId` — listar por repertório
+  - `GET /api/itens-repertorio/:id` — buscar por id
+  - `POST /api/itens-repertorio` — criar (body JSON)
+  - `PUT /api/itens-repertorio/:id` — atualizar
+  - `DELETE /api/itens-repertorio/:id` — remover
+
+As rotas aceitam/retornam JSON. Consulte os controllers para os campos esperados.
+
+## Estrutura (resumo)
+
+- `server/` — backend Express + SQLite
+  - `src/app.js` — configuração das rotas e middlewares
+  - `src/server.js` — inicialização do servidor
+  - `src/db.js` — conexão e schema SQLite
+  - `src/models/` — modelos que acessam o banco
+  - `src/controllers/` — lógica das rotas
+  - `src/routes/` — definições de endpoints
+
+- `client/` — frontend estático
+  - `index.html`, `css/`, `js/` (serviços e views)
+
+## Próximos passos úteis
+
+- Executar o servidor e testar as rotas com `curl` ou Postman.
+- Popular o banco com registros de exemplo para testar a interface.
+
