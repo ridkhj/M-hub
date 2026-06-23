@@ -23,9 +23,8 @@ function limparErro() {
 // ---- Músicas ----
 async function atualizarMusicas() {
   const musicas = await musicaService.listar();
-  musicaView.renderLista(musicas, removerMusica);
-  // O dropdown de itens de repertório depende das músicas:
-  itemRepertorioView.preencherSelectMusicas(musicas);
+  musicaView.renderLista(musicas, editarMusicaTom, removerMusica);
+  return musicas;
 }
 
 async function criarMusica(dados) {
@@ -34,6 +33,7 @@ async function criarMusica(dados) {
     await musicaService.criar(dados);
     musicaView.limparForm();
     await atualizarMusicas();
+    await atualizarSelects();
   } catch (err) { mostrarErro(err.message); }
 }
 
@@ -48,9 +48,8 @@ async function removerMusica(id) {
 // ---- Cantores ----
 async function atualizarCantores() {
   const cantores = await cantorService.listar();
-  cantorView.renderLista(cantores, removerCantor);
-  // O dropdown de itens de repertório depende dos cantores:
-  itemRepertorioView.preencherSelectCantores(cantores);
+  cantorView.renderLista(cantores, editarCantorNome, removerCantor);
+  return cantores;
 }
 
 async function criarCantor(dados) {
@@ -59,6 +58,7 @@ async function criarCantor(dados) {
     await cantorService.criar(dados);
     cantorView.limparForm();
     await atualizarCantores();
+    await atualizarSelects();
   } catch (err) { mostrarErro(err.message); }
 }
 
@@ -73,17 +73,17 @@ async function removerCantor(id) {
 // ---- Repertórios ----
 async function atualizarRepertorios() {
   const repertorios = await repertorioService.listar();
-  repertorioView.renderLista(repertorios, removerRepertorio);
-  // O dropdown de itens de repertório depende dos repertórios:
-  itemRepertorioView.preencherSelectRepertorios(repertorios);
+  repertorioView.renderLista(repertorios, editarRepertorioData, removerRepertorio);
+  return repertorios;
 }
-
+  
 async function criarRepertorio(dados) {
   limparErro();
   try {
     await repertorioService.criar(dados);
     repertorioView.limparForm();
     await atualizarRepertorios();
+    await atualizarSelects();
   } catch (err) { mostrarErro(err.message); }
 }
 
@@ -93,13 +93,14 @@ async function removerRepertorio(id) {
     await repertorioService.remover(id);
     await atualizarRepertorios();
     await atualizarItensRepertorio(); // Atualiza itens caso o repertório suma
+    await atualizarSelects();
   } catch (err) { mostrarErro(err.message); }
 }
 
 // ---- Itens de Repertório ----
 async function atualizarItensRepertorio() {
   const itens = await itemRepertorioService.listar();
-  itemRepertorioView.renderLista(itens, removerItemRepertorio);
+  itemRepertorioView.renderLista(itens, editarItemOrdem, removerItemRepertorio);
 }
 
 async function criarItemRepertorio(dados) {
@@ -116,6 +117,56 @@ async function removerItemRepertorio(id) {
   try {
     await itemRepertorioService.remover(id);
     await atualizarItensRepertorio();
+    await atualizarSelects();
+  } catch (err) { mostrarErro(err.message); }
+}
+
+// Atualiza os selects usados pelo form de itens de repertório
+async function atualizarSelects() {
+  try {
+    const musicas = await musicaService.listar();
+    const cantores = await cantorService.listar();
+    const repertorios = await repertorioService.listar();
+    itemRepertorioView.preencherSelects(repertorios, musicas, cantores);
+  } catch (err) {
+    mostrarErro(err.message);
+  }
+}
+
+// --- Edit handlers (salvar alterações inline)
+async function editarMusicaTom(id, novoTom) {
+  limparErro();
+  try {
+    await musicaService.atualizar(id, { tonalidadeOriginal: novoTom });
+    await atualizarMusicas();
+    await atualizarItensRepertorio();
+  } catch (err) { mostrarErro(err.message); }
+}
+
+async function editarCantorNome(id, novoNome) {
+  limparErro();
+  try {
+    await cantorService.atualizar(id, { nome: novoNome });
+    await atualizarCantores();
+    await atualizarItensRepertorio();
+  } catch (err) { mostrarErro(err.message); }
+}
+
+async function editarRepertorioData(id, novaData) {
+  limparErro();
+  try {
+    await repertorioService.atualizar(id, { dataExecucao: novaData });
+    await atualizarRepertorios();
+    await atualizarItensRepertorio();
+    await atualizarSelects();
+  } catch (err) { mostrarErro(err.message); }
+}
+
+async function editarItemOrdem(id, novaOrdem) {
+  limparErro();
+  try {
+    await itemRepertorioService.atualizar(id, { ordem: Number(novaOrdem) });
+    await atualizarItensRepertorio();
   } catch (err) { mostrarErro(err.message); }
 }
 
@@ -128,14 +179,15 @@ itemRepertorioView.onSubmit(criarItemRepertorio);
 async function iniciar() {
   try {
     // Carrega os dados básicos que alimentam os selects e as listas
-    await atualizarMusicas();
-    await atualizarCantores();
-    await atualizarRepertorios();
-    
+    const musicas = await atualizarMusicas();
+    const cantores = await atualizarCantores();
+    const repertorios = await atualizarRepertorios();
+    // Popula selects de itens de repertório com todas as informações
+    itemRepertorioView.preencherSelects(repertorios, musicas, cantores);
     // Carrega a lista final que depende das entidades acima
     await atualizarItensRepertorio();
   } catch (err) {
-    mostrarErro('Não foi possível conectar à API. Verifique se o servidor está rodando (ex: porta 3000) e se o CORS está configurado.');
+    mostrarErro(err.message);
   }
 }
 

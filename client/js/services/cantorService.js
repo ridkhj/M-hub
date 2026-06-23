@@ -7,7 +7,7 @@ export const cantorService = {
     return api.getCantores();
   },
 
-  async criar({ nome, sexo }) {
+  async criar({ nome, sexo }) { 
     if (!nome || !nome.trim()) throw new Error('O nome do cantor é obrigatório');
     if (!sexo || !SEXOS_VALIDOS.includes(sexo)) throw new Error('Sexo inválido. Escolha M ou F');
 
