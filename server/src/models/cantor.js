@@ -1,36 +1,32 @@
-let cantores = [];
-let nextCantorId = 1;
+import { db } from '../db.js';
 
 export const cantorModel = {
   listarTodas() {
-    return cantores;
+    return db.prepare('SELECT * FROM cantores').all();
   },
 
   buscarPorId(id) {
-    return cantores.find(c => c.id === id) || null;
+    return db.prepare('SELECT * FROM cantores WHERE id = ?').get(Number(id)) || null;
   },
 
   inserir({ nome, sexo }) {
-    const nova = {
-      id: nextCantorId++,
-      nome,
-      sexo,
-      criadaEm: new Date().toISOString(),
-    };
-    cantores.push(nova);
-    return nova;
+    const r = db.prepare(
+      `INSERT INTO cantores (nome, sexo, criada_em)
+       VALUES (?, ?, ?)`
+    ).run(nome, sexo, new Date().toISOString());
+    return this.buscarPorId(r.lastInsertRowid);
   },
 
   atualizar(id, dados) {
-    const idx = cantores.findIndex(c => c.id === id);
-    if (idx === -1) return null;
-    cantores[idx] = { ...cantores[idx], ...dados, id };
-    return cantores[idx];
+    const atual = this.buscarPorId(id);
+    if (!atual) return null;
+    const novo = { ...atual, ...dados, id };
+    db.prepare('UPDATE cantores SET nome = ?, sexo = ? WHERE id = ?')
+      .run(novo.nome, novo.sexo, id);
+    return this.buscarPorId(id);
   },
 
   remover(id) {
-    const len = cantores.length;
-    cantores = cantores.filter(c => c.id !== id);
-    return cantores.length < len;
+    return db.prepare('DELETE FROM cantores WHERE id = ?').run(id).changes > 0;
   },
 };
