@@ -6,12 +6,12 @@ import musicaRoutes from './routes/musicaRoutes.js';
 import cantorRoutes from './routes/cantorRoutes.js';
 import repertorioRoutes from './routes/repertorioRoutes.js';
 import itemRepertorioRoutes from './routes/itemRepertorioRoutes.js';
+import cors from 'cors';
 
 const app = express();
-
-
 app.use(express.json()); 
 app.use(logger);
+app.use(cors())
 // Declaração das rotas das classes
 app.use('/api/musicas', musicaRoutes);
 app.use('/api/cantores', cantorRoutes);

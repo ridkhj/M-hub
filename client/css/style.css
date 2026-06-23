@@ -1,0 +1,12 @@
+/* O Bootstrap faz quase tudo. Aqui só ajustes próprios. */
+body {
+    min-height: 100vh;
+}
+
+.list-group-item {
+    transition: background-color 0.15s ease;
+}
+
+.saldo-input {
+    max-width: 120px;
+}
